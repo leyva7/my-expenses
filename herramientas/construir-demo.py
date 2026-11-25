@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
-"""Construye docs/index.html: la app con los datos de ejemplo, lista para GitHub Pages o para abrir en local.
+"""Builds docs/index.html: the app with the sample data, ready for GitHub Pages or to open locally.
 
-Uso:
+Usage:
     python3 herramientas/construir-demo.py
 
-La primera vez que alguien abre la demo, se cargan los datos de datos-ejemplo/ en el navegador (localStorage)
-desplazados en el tiempo para que el último mes de los datos sea el mes actual. Desde ese momento es una app
-normal en modo local: lo que se añada se guarda solo en ese navegador. Para volver a empezar, borra los datos
-del sitio en el navegador.
+The first time someone opens the demo, the data in datos-ejemplo/ is loaded into the browser (localStorage),
+shifted in time so the last month of data is the current month. From then on it is a normal app in local mode:
+whatever is added is stored only in that browser. To start over, clear the site's data in the browser.
 """
 import glob, json, os
 
@@ -19,7 +18,7 @@ txs = [t for f in sorted(glob.glob(os.path.join(RAIZ, "datos-ejemplo", "months",
 datos = json.dumps({"txs": txs, "cats": cats}, ensure_ascii=False, separators=(",", ":"))
 
 carga = """<script>
-/* Demo de Mis Gastos: datos INVENTADOS. Solo se cargan si este navegador aún no tiene datos guardados. */
+/* Mis Gastos demo: INVENTED data. Only loaded if this browser has no saved data yet. */
 (function () {
   var KEY = "gastos.local.v1";
   try { if (localStorage.getItem(KEY)) return; } catch (e) { return; }
@@ -42,7 +41,7 @@ carga = """<script>
 
 cabecera = ('<!doctype html>\n<html lang="es">\n<head>\n<meta charset="utf-8">\n'
             '<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">\n'
-            '<meta name="description" content="Mis Gastos: demo con datos inventados">\n')
+            '<meta name="description" content="Mis Gastos: demo with invented data">\n')
 os.makedirs(os.path.join(RAIZ, "docs"), exist_ok=True)
 open(os.path.join(RAIZ, "docs", "index.html"), "w", encoding="utf-8").write(cabecera + carga + app)
-print("docs/index.html:", len(txs), "movimientos de ejemplo")
+print("docs/index.html:", len(txs), "sample movements")

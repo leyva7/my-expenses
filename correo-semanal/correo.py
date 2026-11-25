@@ -20,7 +20,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import grafico as G  # noqa: E402
 B = G.B
 eur, MES3 = B.eur, B.MES3
-# Enlace del botón «Abrir Mis Gastos»: pon el de tu copia de la app (variable de entorno MISGASTOS_URL).
+# Link for the "Abrir Mis Gastos" button: set it to your copy of the app (MISGASTOS_URL environment variable).
 APP = os.environ.get("MISGASTOS_URL", "https://github.com/leyva7/my-expenses")
 # Estilo v19 de la app (piel iOS): fondos de sistema, celdas blancas, índigo.
 # Gmail puede quitar los fondos: nunca texto blanco; el botón lleva borde.

@@ -1,57 +1,61 @@
 # Mis Gastos
 
-App personal de gastos e ingresos en **un solo archivo HTML**: sin servidor, sin dependencias y sin cuenta. Se abre en el navegador, funciona en móvil y escritorio, tiene tema claro y oscuro, y además de apuntar movimientos te dice cómo vas: previsión de fin de mes, pagos fijos, cambios de hábito, viajes y avisos.
+A personal expense and income tracker in **a single HTML file**: no server, no dependencies, no account. It runs in the browser on mobile and desktop, has light and dark themes, and besides recording transactions it tells you how you are doing: end-of-month forecast, fixed payments, habit changes, trips and alerts.
 
-Incluye también un **resumen semanal por correo** (titular, tres frases y un gráfico) generado con Python a partir de los mismos datos.
+It also includes a **weekly email summary** (headline, three sentences and one chart) generated with Python from the same data.
 
-> Todos los datos de este repositorio son **inventados** (`datos-ejemplo/`). No hay movimientos reales de nadie.
+The app's interface, category names and emails are in **Spanish (Spain)**; the code and documentation are in English.
 
-| Resumen (móvil) | Análisis | Modo oscuro |
+> All data in this repository is **invented** (`datos-ejemplo/`). There are no real transactions from anyone.
+
+| Summary (mobile) | Analysis | Dark mode |
 |---|---|---|
-| ![Resumen en móvil](docs/capturas/m-light-resumen.png) | ![Análisis general](docs/capturas/m-light-analisis-general.png) | ![Resumen en modo oscuro](docs/capturas/m-dark-resumen.png) |
+| ![Summary on mobile](docs/capturas/m-light-resumen.png) | ![General analysis](docs/capturas/m-light-analisis-general.png) | ![Summary in dark mode](docs/capturas/m-dark-resumen.png) |
 
-![Resumen en escritorio](docs/capturas/d-light-resumen.png)
+![Summary on desktop](docs/capturas/d-light-resumen.png)
 
-## Pruébalo
+## Try it
 
-- **Demo:** abre [`docs/index.html`](docs/index.html) en el navegador (o la versión en GitHub Pages, si está activada: *Settings → Pages → Deploy from branch → `main` / `docs`*). La primera vez carga 897 movimientos inventados, movidos en el tiempo para que el último mes sea el actual. Lo que añadas se guarda solo en tu navegador.
-- **Empezar con tus datos:** abre [`app/gastos-amigo.html`](app/gastos-amigo.html). Arranca vacía, con 16 categorías básicas, y lo guarda todo en el navegador. Puedes importar un CSV de tu banco o de otra app (detecta columnas de fecha, importe, tipo, categoría y nota) y exportar copias de seguridad en CSV o JSON.
+- **Demo:** open [`docs/index.html`](docs/index.html) in your browser, or the GitHub Pages version if enabled (*Settings → Pages → Deploy from a branch → `main` / `docs`*). The first time it loads 897 invented transactions, shifted in time so the last month is the current one. Anything you add is stored only in your browser.
+- **Start with your own data:** open [`app/gastos-amigo.html`](app/gastos-amigo.html). It starts empty with 16 basic categories and keeps everything in the browser. You can import a CSV from your bank or another app (it detects date, amount, type, category and note columns, in English or Spanish) and export backups as CSV or JSON.
 
-## Qué hace
+## Features
 
-- **Resumen:** neto del mes, ingresos y gastos, últimos 6 meses, previsión de cómo acabarás el mes (con rango y lo que ahorrarás) y avisos.
-- **Movimientos:** lista por días con búsqueda, filtros, edición, selección múltiple y etiquetas. Al escribir la nota sugiere la categoría.
-- **Análisis:** general, hábitos (ritmo por categoría y cambios de hábito), comparar periodos, **fijos** (detecta suscripciones y recibos, avisa si suben, bajan, faltan o aparece uno nuevo) y **viajes**.
-- **Evolución** mes a mes y **Categorías y presupuestos**, con colores, iconos y presupuesto mensual.
-- Gastos **extraordinarios** (una compra grande puntual) que no distorsionan el «mes normal».
+- **Resumen (summary):** month net, income and expenses, last 6 months, forecast of how the month will end (with a range and how much you will save) and alerts.
+- **Movimientos (transactions):** list by day with search, filters, editing, multi-select and labels. It suggests a category as you type the note.
+- **Análisis (analysis):** overview, habits (pace by category and habit changes), compare periods, **fixed payments** (detects subscriptions and bills, warns when one goes up, goes down, is missing or a new one appears) and **trips**.
+- **Evolución** (month by month) and **Categorías y presupuestos** (categories and budgets), with colours, icons and a monthly budget.
+- **Extraordinary** expenses (a one-off big purchase) that do not distort the "normal month".
 
-## Estructura
+## Structure
+
+Folder names are in Spanish, like the app.
 
 ```
 app/
-  gastos.html          La app (versión principal). Pensada para publicarse como artefacto de claude.ai,
-                       donde guarda los datos en una base en la nube; fuera de ahí usa localStorage.
-  gastos-amigo.html    Variante independiente: solo localStorage, arranca vacía con categorías básicas.
-datos-ejemplo/
-  generar.py           Genera los datos inventados (semilla fija: siempre los mismos).
-  months/AAAA-MM.json  Movimientos por mes.
-  meta/config.json     Categorías.
-correo-semanal/        Resumen semanal por correo (ver más abajo).
+  gastos.html          The app (main version). Built to be published as a claude.ai artifact, where it stores
+                       data in a cloud database; anywhere else it uses localStorage.
+  gastos-amigo.html    Standalone variant: localStorage only, starts empty with basic categories.
+datos-ejemplo/         Sample data
+  generar.py           Generates the invented data (fixed seed: always the same output).
+  months/YYYY-MM.json  Transactions per month.
+  meta/config.json     Categories.
+correo-semanal/        Weekly email summary (see below).
 docs/
-  index.html           Demo con los datos de ejemplo (la construye herramientas/construir-demo.py).
-  capturas/            Capturas de la demo.
-  MANTENIMIENTO.md     Cómo está hecha la app por dentro y cómo cambiarla sin romperla.
-herramientas/
-  construir-demo.py    Regenera docs/index.html a partir de app/gastos.html y datos-ejemplo/.
+  index.html           Demo with the sample data (built by herramientas/construir-demo.py).
+  capturas/            Screenshots of the demo.
+  MAINTENANCE.md       How the app is built inside and how to change it without breaking it.
+herramientas/          Tools
+  construir-demo.py    Rebuilds docs/index.html from app/gastos.html and datos-ejemplo/.
 tests/
-  calc.test.js         14 comprobaciones de los cálculos (previsión, ahorro, fijos, avisos…).
-  snap.js, snapdiff.js Regresión visual: estilo calculado de cada pantalla y comparación entre versiones.
-  tools/cssmerge.py    Fusiona reglas CSS repetidas de forma segura.
+  calc.test.js         14 checks of the calculations (forecast, savings, fixed payments, alerts...).
+  snap.js, snapdiff.js Visual regression: computed style of every screen and a diff between versions.
+  tools/cssmerge.py    Safely merges repeated CSS rules.
 ```
 
-## Modelo de datos
+## Data model
 
-Los movimientos se guardan por mes (`months/AAAA-MM`) y la configuración en `meta/config`:
+Transactions are stored per month (`months/YYYY-MM`) and settings in `meta/config`:
 
 ```jsonc
 // months/2026-10.json
@@ -61,15 +65,15 @@ Los movimientos se guardan por mes (`months/AAAA-MM`) y la configuración en `me
 ]}
 ```
 
-| Campo | Significado |
+| Field | Meaning |
 |---|---|
-| `d` | Fecha y hora local, `AAAA-MM-DDTHH:MM` |
-| `k` | `e` gasto, `i` ingreso |
-| `c` | Id de categoría (de `meta/config.json`) |
-| `a` | Importe, siempre positivo |
-| `n` | Nota libre. En viajes, el destino va en la nota («Vuelos Roma») |
-| `l` | Etiquetas separadas por comas (opcional) |
-| `x` | `true` si es extraordinario (opcional) |
+| `d` | Local date and time, `YYYY-MM-DDTHH:MM` |
+| `k` | `e` expense, `i` income |
+| `c` | Category id (from `meta/config.json`) |
+| `a` | Amount, always positive |
+| `n` | Free-text note. For trips, the destination goes in the note ("Vuelos Roma") |
+| `l` | Comma-separated labels (optional) |
+| `x` | `true` if extraordinary (optional) |
 
 ```jsonc
 // meta/config.json
@@ -77,67 +81,67 @@ Los movimientos se guardan por mes (`months/AAAA-MM`) y la configuración en `me
   "currency": "EUR", "v": 1 }
 ```
 
-En modo local todo va en una sola clave de `localStorage`, `gastos.local.v1`, con la forma `{ "txs": [...], "cats": [...] }`.
+In local mode everything lives in a single `localStorage` key, `gastos.local.v1`, shaped as `{ "txs": [...], "cats": [...] }`.
 
-### Cómo se calculan las cifras
+### How the figures are computed
 
-- **Mes normal:** media de los últimos 6 meses completos sin extraordinarios.
-- **Previsión de fin de mes:** lo gastado + fijos pendientes + día a día esperado + imprevistos. En los datos de ejemplo, el error medio en la prueba histórica (días 5, 10, 15, 20 y 25 de cada mes) es del 16 %.
-- **Gasto puntual:** extraordinario, de 150 € o más, o de viaje. Se aparta del ritmo diario.
-- **Fijos:** mismo concepto o importe en al menos 3 meses, más o menos una vez al mes, con importes dentro de ±35 %.
-- **Cambio de hábito:** una categoría o palabra de las notas cuya mediana de los últimos 3 meses es al menos el doble de la media de los 6 anteriores (y 25 €/mes más).
+- **Normal month:** average of the last 6 complete months, excluding extraordinary items.
+- **End-of-month forecast:** spent so far + pending fixed payments + expected day-to-day spending + unexpected items. On the sample data, the mean error in the historical back-test (cut-offs on days 5, 10, 15, 20 and 25 of each month) is 16 %.
+- **One-off expense:** extraordinary, 150 € or more, or a trip. Kept out of the daily pace.
+- **Fixed payments:** same note or amount in at least 3 months, roughly once a month, with amounts within ±35 %.
+- **Habit change:** a category or a word in the notes whose median over the last 3 months is at least twice the average of the previous 6 (and at least 25 €/month more).
 
-Más detalle en [`docs/MANTENIMIENTO.md`](docs/MANTENIMIENTO.md).
+More detail in [`docs/MAINTENANCE.md`](docs/MAINTENANCE.md).
 
-## Resumen semanal por correo
+## Weekly email summary
 
-`correo-semanal/correo.py` lee los datos, calcula la semana y el mes, y genera un correo listo para enviar:
+`correo-semanal/correo.py` reads the data, works out the week and the month, and builds an email ready to send:
 
-![Gráfico del correo semanal](docs/capturas/correo-grafico.png)
+![Weekly email chart](docs/capturas/correo-grafico.png)
 
-**Requisitos:** Python 3.10 o superior (solo biblioteca estándar), Node.js y Playwright con Chromium (para dibujar el gráfico en PNG):
+**Requirements:** Python 3.10 or later (standard library only), Node.js and Playwright with Chromium (to render the chart as a PNG):
 
 ```bash
 npm install playwright && npx playwright install chromium
 ```
 
-**Uso:**
+**Usage:**
 
 ```bash
-export MISGASTOS_URL="https://enlace-a-tu-copia-de-la-app"   # botón «Abrir Mis Gastos» (opcional)
-python3 correo-semanal/correo.py --db datos-ejemplo --hoy 2026-11-22 --outdir salida
+export MISGASTOS_URL="https://link-to-your-copy-of-the-app"   # "Abrir Mis Gastos" button (optional)
+python3 correo-semanal/correo.py --db datos-ejemplo --hoy 2026-11-22 --outdir out
 ```
 
-`--db` es una carpeta con el mismo formato que `datos-ejemplo/` (`months/*.json` y `meta/config.json`). Si tus datos están en la app, expórtalos o vuélcalos a esa estructura. El script escribe en `--outdir`:
+`--db` is a folder with the same layout as `datos-ejemplo/` (`months/*.json` and `meta/config.json`); `--hoy` is today's date. If your data lives in the app, export it or dump it into that layout. The script writes to `--outdir`:
 
-- `correo.html`: cuerpo HTML para el correo (el gráfico va como imagen incrustada, `src="cid:att0"`).
-- `correo.txt`: la misma información en texto plano.
-- `grafico.png`: el gráfico del mes y las categorías.
-- `datos.json`: todas las cifras calculadas.
+- `correo.html`: HTML body for the email (the chart is an embedded image, `src="cid:att0"`).
+- `correo.txt`: the same information as plain text.
+- `grafico.png`: chart of the month and the categories.
+- `datos.json`: every computed figure.
 
-Además imprime por pantalla un JSON con el asunto, el titular, las frases y las rutas. El script **no envía nada**: el envío lo hace quien lo llama. En mi caso es una tarea programada de Claude que se ejecuta los domingos por la tarde, lee los datos de la app y crea un borrador en Gmail con `correo.html`, `correo.txt` y `grafico.png` como adjunto en línea. Sirve igual cualquier otro programador de tareas (cron, GitHub Actions…) con un cliente SMTP.
+It also prints a JSON with the subject, headline, sentences and file paths. The script **does not send anything**: the caller does. In my setup it is a scheduled Claude task that runs on Sunday afternoons, reads the app's data and creates a Gmail draft with `correo.html`, `correo.txt` and `grafico.png` as an inline attachment (see [`correo-semanal/example-task.md`](correo-semanal/example-task.md)). Any other scheduler (cron, GitHub Actions...) with an SMTP client works just as well.
 
-Si la semana no tiene movimientos, no genera imagen y el correo es una sola línea. El diseño es legible aunque el cliente de correo quite los fondos, y tiene modo oscuro para Apple Mail.
+If the week has no transactions, no image is generated and the email is a single line. The design stays readable when the mail client strips backgrounds, and it has a dark mode for Apple Mail.
 
-## Desarrollo
+## Development
 
-Requisitos: Node.js con Playwright (`npm install playwright && npx playwright install chromium`) y Python 3.
+Requirements: Node.js with Playwright (`npm install playwright && npx playwright install chromium`) and Python 3.
 
 ```bash
-node tests/calc.test.js                          # cálculos: deben pasar las 14 comprobaciones
-node tests/snap.js app/gastos.html /tmp/antes    # estilo de cada pantalla (antes del cambio)
-# … haces el cambio …
-node tests/snap.js app/gastos.html /tmp/despues
-node tests/snapdiff.js /tmp/antes /tmp/despues   # qué elementos cambian y en qué propiedad
-python3 herramientas/construir-demo.py           # actualiza la demo
+node tests/calc.test.js                          # calculations: all 14 checks must pass
+node tests/snap.js app/gastos.html /tmp/before   # style of every screen (before the change)
+# ... make the change ...
+node tests/snap.js app/gastos.html /tmp/after
+node tests/snapdiff.js /tmp/before /tmp/after    # which elements change and in which property
+python3 herramientas/construir-demo.py           # update the demo
 ```
 
-Los tests usan `datos-ejemplo/` y una fecha fija (30 de octubre de 2026), así que sus cifras no dependen del día en que se ejecutan. Si regeneras los datos de ejemplo con otras reglas, cambian y hay que volver a fijarlas.
+The tests use `datos-ejemplo/` and a fixed date (30 October 2026), so their figures do not depend on the day you run them. If you regenerate the sample data with different rules, the figures change and must be pinned again.
 
-## Cómo se hizo
+## How it was made
 
-La app se construyó en iteraciones con Claude (Anthropic), desde la v1 hasta la v19 actual, con rondas de revisión técnica, pruebas de precisión de la previsión sobre datos históricos y un rediseño con aspecto de app nativa de iPhone.
+The app was built iteratively with Claude (Anthropic), from v1 to the current v19, with technical review rounds, accuracy back-tests of the forecast on historical data, and a redesign that looks like a native iPhone app.
 
-## Licencia
+## License
 
 [MIT](LICENSE)

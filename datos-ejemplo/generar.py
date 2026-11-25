@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
-"""Genera datos de ejemplo INVENTADOS para Mis Gastos (no son movimientos reales de nadie).
+"""Generates INVENTED sample data for Mis Gastos (these are nobody's real transactions).
 
-Uso:
-    python3 datos-ejemplo/generar.py            # escribe datos-ejemplo/months/*.json y meta/config.json
+Usage:
+    python3 datos-ejemplo/generar.py            # writes datos-ejemplo/months/*.json and meta/config.json
 
-El resultado tiene el mismo formato que la base de datos de la app (ver README, «Modelo de datos»)
-y sirve para los tests, la demo y el correo semanal. La semilla aleatoria es fija: dos ejecuciones
-dan exactamente los mismos archivos, así que los valores que comprueban los tests no cambian.
+The output has the same format as the app's database (see README, "Data model") and feeds the tests,
+the demo and the weekly email. The random seed is fixed: two runs produce exactly the same files, so the
+values the tests check do not change. Notes and category names are in Spanish, like the app.
 
-Lo que contiene a propósito, para que se vean todas las funciones de la app:
-- Sueldo mensual con pagas extra, alquiler y facturas fijas (gimnasio, móvil, streaming…).
-- Un fijo nuevo que aparece en los dos últimos meses (aviso «Nuevo fijo»).
-- Un hábito que se dispara en los últimos 3 meses (pádel), para el aviso de cambio de hábito.
-- Viajes (categoría Viajes, destino en la nota) y compras grandes marcadas como extraordinarias.
+It deliberately contains, so every feature of the app has something to show:
+- Monthly salary with extra payments, rent and fixed bills (gym, phone, streaming...).
+- A new fixed payment that appears in the last two months ("Nuevo fijo" alert).
+- A habit that takes off in the last 3 months (padel), for the habit-change alert.
+- Trips (Viajes category, destination in the note) and big purchases marked as extraordinary.
 """
 import datetime as dt, hashlib, json, os, random
 
@@ -141,4 +141,4 @@ for k, l in por_mes.items():
     json.dump({"txs": l}, open(os.path.join(OUT, "months", k + ".json"), "w", encoding="utf-8"), ensure_ascii=False)
 cats = [{"id": i, "name": n, "kind": k, "icon": ic, "color": col, "budget": b} for i, n, k, ic, col, b in CATS]
 json.dump({"cats": cats, "currency": "EUR", "v": 1}, open(os.path.join(OUT, "meta", "config.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
-print(f"{len(txs)} movimientos en {len(por_mes)} meses → {OUT}")
+print(f"{len(txs)} movements in {len(por_mes)} months -> {OUT}")
