@@ -1,0 +1,11 @@
+# Datos reales: nunca al repositorio
+*.csv
+mis-datos/
+db/
+salida/
+# Python / Node
+__pycache__/
+*.pyc
+node_modules/
+# Sistema
+.DS_Store

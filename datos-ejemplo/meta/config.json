@@ -1,0 +1,134 @@
+{
+ "cats": [
+  {
+   "id": "e-supermercado",
+   "name": "Supermercado",
+   "kind": "e",
+   "icon": "🛒",
+   "color": "#F2A541",
+   "budget": 260
+  },
+  {
+   "id": "e-restaurantes",
+   "name": "Restaurantes y bares",
+   "kind": "e",
+   "icon": "🍽️",
+   "color": "#E4572E",
+   "budget": 150
+  },
+  {
+   "id": "e-casa",
+   "name": "Casa",
+   "kind": "e",
+   "icon": "🏠",
+   "color": "#5C80BC",
+   "budget": null
+  },
+  {
+   "id": "e-facturas",
+   "name": "Facturas",
+   "kind": "e",
+   "icon": "🧾",
+   "color": "#7B6CD9",
+   "budget": null
+  },
+  {
+   "id": "e-transporte",
+   "name": "Transporte",
+   "kind": "e",
+   "icon": "🚇",
+   "color": "#3BB273",
+   "budget": 60
+  },
+  {
+   "id": "e-deportes",
+   "name": "Deportes y hobbies",
+   "kind": "e",
+   "icon": "🎾",
+   "color": "#2E86AB",
+   "budget": null
+  },
+  {
+   "id": "e-ocio",
+   "name": "Ocio",
+   "kind": "e",
+   "icon": "🎬",
+   "color": "#D7263D",
+   "budget": 80
+  },
+  {
+   "id": "e-compras",
+   "name": "Compras",
+   "kind": "e",
+   "icon": "🛍️",
+   "color": "#C17C74",
+   "budget": null
+  },
+  {
+   "id": "e-ropa",
+   "name": "Ropa",
+   "kind": "e",
+   "icon": "👕",
+   "color": "#B5838D",
+   "budget": null
+  },
+  {
+   "id": "e-salud",
+   "name": "Salud",
+   "kind": "e",
+   "icon": "💊",
+   "color": "#1B998B",
+   "budget": null
+  },
+  {
+   "id": "e-viajes",
+   "name": "Viajes",
+   "kind": "e",
+   "icon": "✈️",
+   "color": "#4D9DE0",
+   "budget": null
+  },
+  {
+   "id": "e-regalos",
+   "name": "Regalos",
+   "kind": "e",
+   "icon": "🎁",
+   "color": "#E07BE0",
+   "budget": null
+  },
+  {
+   "id": "e-otros",
+   "name": "Otros",
+   "kind": "e",
+   "icon": "🏷️",
+   "color": "#8C9A2B",
+   "budget": null
+  },
+  {
+   "id": "i-salario",
+   "name": "Salario",
+   "kind": "i",
+   "icon": "💼",
+   "color": "#2A9D8F",
+   "budget": null
+  },
+  {
+   "id": "i-regalos",
+   "name": "Regalos",
+   "kind": "i",
+   "icon": "🎁",
+   "color": "#E1BC29",
+   "budget": null
+  },
+  {
+   "id": "i-otros",
+   "name": "Otros",
+   "kind": "i",
+   "icon": "🏷️",
+   "color": "#6D597A",
+   "budget": null
+  }
+ ],
+ "currency": "EUR",
+ "v": 1
+}
