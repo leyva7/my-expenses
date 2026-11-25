@@ -1,6 +1,6 @@
 # My Expenses: how it is built and how to change it without breaking it
 
-- **App:** `app/my-expenses.html` (v19). A single file meant to be published as a claude.ai artifact, where it stores data in the artifact's database; outside claude.ai it uses `localStorage`.
+- **App:** `app/my-expenses.html` (v20). A single file meant to be published as a claude.ai artifact, where it stores data in the artifact's database; outside claude.ai it uses `localStorage`.
 - **Local mode:** outside claude.ai everything lives in the `localStorage` key `gastos.local.v1`. On first run, with no data and no categories, it seeds a starter list of 16 categories (`STARTER`).
 - **History:** every version change is a commit. To compare styles, get the previous version with `git show HEAD~1:app/my-expenses.html > /tmp/previous.html`.
 
@@ -21,6 +21,8 @@ Internal identifiers (function names such as `vResumen`, tab ids such as `resume
 - The end-of-month forecast comes from `forecastAt()`. The range comes from `forecastRange()` and the month's savings from `netForecastAt()`.
 - A "one-off" expense is one where `isLump()` is true: extraordinary, €150 or more, or a trip.
 - Alerts come from `allAlerts()` and are shown only in Summary.
+- The forecast card shows the real total, extraordinary expenses included; only its "vs normal month" comparison and the pace chart leave them out, using `monthForecast().xs`.
+- After saving a transaction, `showSaved()` makes sure it is visible (Summary jumps to its month; Transactions clears a filter that would hide it).
 
 ## Before publishing a change
 

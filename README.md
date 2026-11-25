@@ -20,7 +20,7 @@ It also includes a **weekly email summary** (headline, a few sentences and one c
 ## Features
 
 - **Summary:** month net, income and expenses, last 6 months, forecast of how the month will end (with a range and how much you will save) and alerts.
-- **Transactions:** list by day with search, filters, editing, multi-select and labels. It suggests a category as you type the note.
+- **Transactions:** list by day with search (accent-insensitive, every word must match, and it offers matches outside the current period), filters, editing, multi-select (change category, mark extraordinary, delete, all undoable) and labels. It suggests a category as you type the note, keeps an unsaved entry as a draft for 30 minutes, and asks twice before saving an amount far above anything you have entered.
 - **Analysis:** overview, habits (pace by category and habit changes), compare periods, **fixed payments** (detects subscriptions and bills, and warns when one goes up, goes down, is missing or a new one appears) and **trips**.
 - **Trends** (month by month) and **Categories and budgets**, with colours, icons and a monthly budget.
 - **Extraordinary** expenses (a one-off big purchase) that do not distort the "normal month".
@@ -135,7 +135,7 @@ The tests use `sample-data/` and a fixed date (30 October 2026), so their figure
 
 ## How it was made
 
-The app was built iteratively with Claude (Anthropic), from v1 to the current v19, with technical review rounds, accuracy back-tests of the forecast on historical data, and a redesign that looks like a native iPhone app.
+The app was built iteratively with Claude (Anthropic), from v1 to the current v20, with technical review rounds, a round of intensive use as a real user (v20), accuracy back-tests of the forecast on historical data, and a redesign that looks like a native iPhone app.
 
 ## License
 

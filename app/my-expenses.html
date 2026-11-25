@@ -252,6 +252,7 @@ details.tview table.cmp{font-size:12.5px}
 .selbar{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + var(--sab) + var(--vis-b));z-index:45;background:var(--ink);color:var(--bg);border-radius:16px;padding:8px 8px 8px 14px;display:flex;gap:6px;align-items:center;max-width:calc(100% - 24px);box-shadow:0 10px 30px rgba(0,0,0,.3);font-weight:700;font-size:14px;overflow-x:auto}
 .selbar button{border:0;border-radius:10px;padding:9px 12px;font-weight:700;background:color-mix(in srgb,var(--bg) 16%,transparent);color:inherit;white-space:nowrap}
 .selbar span{white-space:nowrap;margin-right:4px}
+.selbar button.armed{background:var(--exp);color:#fff}
 @media (max-width:640px){
   .selbar{bottom:calc(84px + var(--sab) + var(--vis-b))}
 }
@@ -369,6 +370,7 @@ input::-webkit-date-and-time-value{text-align:left}
 .sugg[hidden]{display:none}
 .sugg .chip{min-height:36px;padding:4px 10px;font-size:13px}
 .tx.fx .t1{display:block;text-align:left;white-space:normal}
+.drafted{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:4px 10px;margin:0 0 4px;font-size:13px;font-weight:600;color:var(--muted)}
 .xhint{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;margin-top:8px;padding:8px 10px;border-radius:12px;background:var(--warn-soft);color:var(--warn);font-size:13px;font-weight:600}
 .xhint[hidden]{display:none}
 .xhint .chip{min-height:34px;font-size:13px}
@@ -1271,17 +1273,20 @@ function forecastRange(M) {
 }
 function monthForecast() {
   const now = new Date(), M = ym(now), d = now.getDate(), f = forecastAt(M, d), q = forecastRange(M), rem = f.remVar + f.remBig, base = f.spent + f.pend;
-  return { ...f, lo: Math.min(base + q.lo * rem, f.p), hi: Math.max(base + q.hi * rem, f.p), normal: avgMonthly(6).e };
+  // xs: what this month's extraordinary expenses add; "normal month" leaves them out, so comparisons with it subtract xs
+  const xs = sum(S.txs.filter(t => t.k === "e" && t.x && t.d.startsWith(M) && +t.d.slice(8, 10) <= d));
+  return { ...f, lo: Math.min(base + q.lo * rem, f.p), hi: Math.max(base + q.hi * rem, f.p), normal: avgMonthly(6).e, xs };
 }
 function forecastCard() {
   if (!S.txs.length) return "";
   const sd = staleDays() || 0, f = monthForecast(), nf = netForecastAt(f.M, f.d), mes = MESL[+f.M.slice(5, 7) - 1], parts = [["Spent", f.spent, "var(--accent)"], ["Fixed still due", f.pend, "var(--accent-2)"], ["Day to day", f.remVar, "color-mix(in srgb,var(--accent) 45%,var(--surface))"], ["Unexpected", f.remBig, "var(--bar)"]];
-  const scale = Math.max(f.p, f.normal || 0) * 1.06 || 1, dv = f.normal ? (f.p - f.normal) / f.normal : 0;
+  const scale = Math.max(f.p, f.normal || 0) * 1.06 || 1, dv = f.normal ? (f.p - f.xs - f.normal) / f.normal : 0;
   const pend = f.pendList.map(r => `${catById(r.c)?.name || "Fixed"}${r.n ? " (" + r.n + ")" : ""} ${eur(r.a)} · day ${Math.round(r.day)}`).join("<br>");
   return `<button class="fc" data-ansub="habitos" data-goto="analisis" aria-label="${mes} spending forecast: ${eur0(f.p)}">
     <span class="fc-top"><span class="eyebrow">You will end ${mes} at</span>${f.normal ? `<span class="delta ${Math.abs(dv) < .05 ? "flat" : dv > 0 ? "bad" : "good"}">${Math.abs(dv) < .05 ? "like a normal month" : `${dv > 0 ? "▲" : "▼"} ${pct(Math.abs(dv))} vs normal month`}</span>` : ""}</span>
     <span class="fc-big num${f.normal && dv >= .05 ? " over" : ""}">≈ ${eur0(f.p)}</span>
     <span class="fc-rng">${sd >= STALE ? `Careful: nothing logged for ${sd} days, so it may fall short` : f.d >= 5 ? `Usual range: ${eur0(f.lo)} to ${eur0(f.hi)}` : "Still early: it may change a lot"}</span>
+    ${f.xs > 0 ? `<span class="fc-rng">Includes ${eur0(f.xs)} of extraordinary expenses (left out when comparing with a normal month)</span>` : ""}
     ${nf.inc || nf.pendSal ? `<span class="fc-net">${nf.net >= 0 ? "You will save" : "You will overspend"} ≈ <b class="num" style="color:${nf.net >= 0 ? "var(--inc)" : "var(--exp)"}">${nf.net >= 0 ? "+" : "−"}${eur0(Math.abs(nf.net))}</b><span class="muted"> · ${nf.pendSal ? `counting the ${eur0(nf.pendSal)} salary still to come` : `income ${eur0(nf.inc)}`}</span></span>` : ""}
     <span class="fc-bar" aria-hidden="true">${parts.map(([l, v, c]) => v > .5 ? `<b style="width:${(v / scale * 100).toFixed(2)}%;background:${c}" data-tip="${esc(`<b>${l}</b><br>${eur(v)}${l === "Fixed still due" && pend ? "<br>" + esc(pend) : ""}`)}"></b>` : "").join("")}${f.normal ? `<i style="left:${(f.normal / scale * 100).toFixed(2)}%" data-tip="${esc(`<b>Normal month</b><br>${eur0(f.normal)}`)}"></i>` : ""}</span>
     <span class="fc-leg">${parts.map(([l, v, c]) => `<span><i style="background:${c}"></i>${l} <b class="num">${eur0(v)}</b></span>`).join("")}</span>
@@ -1654,6 +1659,18 @@ function delta(cur, prev, goodWhenUp, scale) {
 let justIds = null, justT = 0, justTO;
 function markJust(ids) { justIds = new Set(ids); justT = performance.now(); clearTimeout(justTO); justTO = setTimeout(() => { justIds = null; }, 1500); }
 // in Transactions the list scrolls just enough to show it; Summary stays put (its big number already counts)
+// after saving, make sure you can see what you saved: Summary jumps to its month; in Transactions a search or filter
+// that would hide it is cleared. Returns a note for the toast when something changed.
+function showSaved(list) {
+  const t = list[0], cur = ym(new Date()); let note = "";
+  if (S.tab === "resumen") { const m = t.d.slice(0, 7), sel = S.ovM && S.ovM <= cur ? S.ovM : cur; if (m !== sel && m <= cur) { S.ovM = m; S.ovShow = 12; } }
+  render();
+  if (S.tab === "movimientos" && !list.some(x => S._ids.includes(x.id))) {
+    Object.assign(S, { q: "", qAll: false, catF: null, lab: null, fmin: "", fmax: "", noNote: false, onlyX: false, movM: null, movKind: "all", show: 60 }); render();
+    note = list.some(x => S._ids.includes(x.id)) ? " · filters cleared so you can see it" : " · it is outside the period you are viewing";
+  }
+  revealJust(); return note;
+}
 function revealJust() { const el = S.tab === "movimientos" && $("#main .tx.just"); if (el) el.scrollIntoView({ block: "nearest", behavior: RM.matches ? "auto" : "smooth" }); }
 function txRow(t) {
   const c = catById(t.c), title = c ? c.name : "Uncategorised";
@@ -1829,9 +1846,9 @@ function anHabits(r) {
   const now = new Date(), cur = ym(now), dim = daysIn(cur), day = now.getDate(), today = ymd(now);
   const ks = completeMonths(6), cum = Array(31).fill(0);
   ks.forEach(k => { const arr = Array(31).fill(0); S.txs.filter(t => t.k === "e" && !t.x && t.d.startsWith(k)).forEach(t => arr[+t.d.slice(8, 10) - 1] += t.a); let a = 0; for (let i = 0; i < 31; i++) { a += arr[i]; cum[i] += a / ks.length; } });
-  const curArr = Array(31).fill(0); S.txs.filter(t => t.k === "e" && t.d.startsWith(cur)).forEach(t => curArr[+t.d.slice(8, 10) - 1] += t.a);
+  const curArr = Array(31).fill(0); S.txs.filter(t => t.k === "e" && !t.x && t.d.startsWith(cur)).forEach(t => curArr[+t.d.slice(8, 10) - 1] += t.a);
   let a = 0; const curCum = curArr.map((v, i) => { a += v; return i < day ? a : null; });
-  const mf = monthForecast(), projEnd = day >= 1 ? mf.p : null;
+  const mf = monthForecast(), projEnd = day >= 1 ? mf.p - mf.xs : null;
   // one "normal month" across the app: the curve keeps the usual day-by-day shape but ends at the forecast's normal month
   const cEnd = cum[dim - 1] || cum[30]; if (cEnd > 0 && mf.normal > 0) for (let i = 0; i < 31; i++) cum[i] *= mf.normal / cEnd;
   const projLine = Array(dim).fill(null); if (projEnd != null) { for (let i = day - 1; i < dim; i++) projLine[i] = curCum[day - 1] + (projEnd - curCum[day - 1]) * (i - day + 1) / Math.max(1, dim - day); }
@@ -1854,7 +1871,7 @@ function anHabits(r) {
   const big = Object.values(grp).sort((x, y) => y.t.a * y.n - x.t.a * x.n).slice(0, 5);
   const darker = `color-mix(in srgb,${css("--accent")} 62%,${css("--ink")})`;
   return `<div class="grid2">
-    <div class="card span2"><h3>${MESL[now.getMonth()]} pace</h3><p class="sub">${projEnd != null ? `Projection <b class="num">${eur0(projEnd)}</b> · normal month ${eur0(normEnd)}` : `Normal month ${eur0(normEnd)}`}</p>
+    <div class="card span2"><h3>${MESL[now.getMonth()]} pace</h3><p class="sub">${projEnd != null ? `Projection <b class="num">${eur0(projEnd)}</b> · normal month ${eur0(normEnd)}` : `Normal month ${eur0(normEnd)}`}${mf.xs > 0 ? ` · without ${eur0(mf.xs)} extraordinary` : ""}</p>
       <div class="legend" style="margin:0 0 6px"><span><i style="background:var(--spend)"></i>This month</span><span style="color:var(--spend)"><i class="dash"></i><span class="muted">Projection</span></span><span><i class="dash"></i>Normal month</span></div>
       ${chart(lines, { labels, full: labels.map(d => "Day " + d), floor0: true, series: [{ name: "Normal month", values: cum.slice(0, dim), color: css("--muted"), w: 1.6, dash: true }, { name: "Projection", values: projLine, color: css("--spend"), dash: true, w: 1.8 }, { name: "This month", values: curCum.slice(0, dim), color: css("--spend"), area: true, end: true }], tip: i => `<b>Day ${i + 1}</b><br>Normal month: ${eur0(cum[i])}${curCum[i] != null ? `<br>This month: ${eur0(curCum[i])}` : projLine[i] != null ? `<br>Projection: ${eur0(projLine[i])}` : ""}`, aria: "Month-to-date spending vs a normal month" }, 190)}
       ${how(`The coloured line adds up this month's spending day by day; the grey one is a normal month (average of your last ${ks.length} months, without extraordinary items). <b>If the coloured line is above it, you are spending faster than usual.</b>`)}</div>
@@ -1941,12 +1958,18 @@ const IC_FILTER = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" st
 const IC_SELECT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="m8.5 12 2.5 2.5 4.5-5"/></svg>';
 function vMovs() {
   const mr = S.movM ? { s: S.movM + "-01", e: S.movM + "-" + pad(daysIn(S.movM)), months: [S.movM] } : null;
-  const r = mr || range(), kind = S.movKind, all = S.txs.filter(t => (kind === "all" || t.k === kind) && inR(t, r));
-  const q = S.q.trim().toLowerCase(), cf = S.catF, qn = parseFloat(q.replace(",", "."));
-  const mn = parseFloat(String(S.fmin).replace(",", ".")), mxF = parseFloat(String(S.fmax).replace(",", "."));
-  const L = all.filter(t => (!cf || t.c === cf) && (!S.lab || labelsOf(t).includes(S.lab)) && (!S.noNote || !t.n) && (!S.onlyX || t.x)
-    && (!isFinite(mn) || t.a >= mn) && (!isFinite(mxF) || t.a <= mxF)
-    && (!q || (t.n || "").toLowerCase().includes(q) || (catById(t.c)?.name || "").toLowerCase().includes(q) || (t.l || "").toLowerCase().includes(q) || (isFinite(qn) && Math.abs(t.a - qn) < 0.005)));
+  const q = S.q.trim(), qAll = !!(q && S.qAll && !mr);
+  const r = mr || range(), kind = S.movKind, ofKind = S.txs.filter(t => kind === "all" || t.k === kind), all = qAll ? ofKind : ofKind.filter(t => inR(t, r));
+  const cf = S.catF, mn = parseAmt(S.fmin), mxF = parseAmt(S.fmax);
+  // search: every word must appear (accents and case ignored) in the note, category or labels, or be the amount ("45" also finds 45.60)
+  const fold = s => String(s || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  const toks = fold(q).split(/\s+/).filter(Boolean).map(w => ({ w, n: /^[\d.,]+$/.test(w) ? parseAmt(w) : NaN }));
+  const hit = t => { if (!toks.length) return true; const h = fold(`${t.n || ""} ${catById(t.c)?.name || ""} ${t.l || ""}`); return toks.every(k => h.includes(k.w) || (isFinite(k.n) && (Math.abs(t.a - k.n) < 0.005 || (!/[.,]/.test(k.w) && Math.floor(t.a) === k.n)))); };
+  const keep = t => (!cf || t.c === cf) && (!S.lab || labelsOf(t).includes(S.lab)) && (!S.noNote || !t.n) && (!S.onlyX || t.x)
+    && (!isFinite(mn) || t.a >= mn) && (!isFinite(mxF) || t.a <= mxF) && hit(t);
+  const L = all.filter(keep);
+  // matches the period hides: offered with one tap instead of a silent "nothing matches"
+  const outN = q && !qAll && !mr ? ofKind.filter(t => !inR(t, r) && keep(t)).length : 0;
   S._ids = L.map(t => t.id);
   const inc = sum(L.filter(t => t.k === "i")), exp = sum(L.filter(t => t.k === "e"));
   const cats = Object.entries(byCat(all)).sort((a, b) => b[1] - a[1]);
@@ -1961,9 +1984,9 @@ function vMovs() {
     <div class="chips" role="group" aria-label="Transaction type"><button class="chip" data-mk="all" aria-pressed="${kind === "all"}">All</button><button class="chip" data-mk="e" aria-pressed="${kind === "e"}">Expenses</button><button class="chip" data-mk="i" aria-pressed="${kind === "i"}">Income</button></div>
     <div class="chips" role="group" aria-label="Category"><button class="chip" data-cf="" aria-pressed="${!cf}">All</button>${cats.map(([c]) => { const cc = catById(c); return `<button class="chip" data-cf="${esc(c)}" aria-pressed="${cf === c}"><span aria-hidden="true">${iconFor(cc)}</span>${esc(cc ? cc.name : "?")}</button>`; }).join("")}</div>
     ${labs.length ? `<div class="chips">${labs.map(l => `<button class="chip" data-lab="${esc(l)}" aria-pressed="${S.lab === l}">#${esc(l)}</button>`).join("")}</div>` : ""}
-    <div class="mv-sum">${S.movM ? `<button class="chip" data-act="clear-movm" aria-label="Remove ${esc(mFull(S.movM))} filter">${esc(mFull(S.movM))} ✕</button>` : ""}<span><b>${L.length}</b> txns</span>${kind !== "e" ? `<span style="color:${Math.round(inc) ? "var(--inc)" : "var(--muted)"}"><b>${sgn(inc)}</b></span>` : ""}${kind !== "i" ? `<span style="color:${Math.round(exp) ? "var(--ink)" : "var(--muted)"}"><b>${sgn(-exp)}</b></span>` : ""}${anyF && (L.length || !q || nF || S.lab || cf || S.movM) ? `<button class="link" data-act="clear-f">Clear filters</button>` : ""}</div>
-    <div class="txlist">${L.length ? txList(L.slice(0, S.show)) + (L.length > S.show ? `<button class="pill-btn more" data-more="1">Show more (${L.length - S.show})</button>` : "") : `<div class="empty">${ILL_SEARCH}<p>Nothing matches${q ? ` "${esc(S.q)}"` : ""} in this period.</p>${q ? `<button class="pill-btn" data-act="clear-q">Clear search</button>` : anyF ? `<button class="pill-btn" data-act="clear-f">Clear filters</button>` : ""}</div>`}</div>
-    ${S.sel ? `<div class="selbar" role="toolbar" aria-label="Selection actions"><span>${selN} selected</span><button data-act="sel-all">All (${L.length})</button><button data-act="sel-cat" ${selN ? "" : "disabled"}>Category</button><button data-act="sel-x" ${selN ? "" : "disabled"}>Extra</button><button data-act="sel-end" aria-label="End selection">✕</button></div>` : ""}
+    <div class="mv-sum">${S.movM ? `<button class="chip" data-act="clear-movm" aria-label="Remove ${esc(mFull(S.movM))} filter">${esc(mFull(S.movM))} ✕</button>` : ""}${qAll ? `<button class="chip" data-act="q-all-off" aria-label="Search only this period">All history ✕</button>` : ""}<span><b>${L.length}</b> txns</span>${kind !== "e" ? `<span style="color:${Math.round(inc) ? "var(--inc)" : "var(--muted)"}"><b>${sgn(inc)}</b></span>` : ""}${kind !== "i" ? `<span style="color:${Math.round(exp) ? "var(--ink)" : "var(--muted)"}"><b>${sgn(-exp)}</b></span>` : ""}${anyF && (L.length || !q || nF || S.lab || cf || S.movM) ? `<button class="link" data-act="clear-f">Clear filters</button>` : ""}${outN && L.length ? `<button class="link" data-act="q-all">+${outN} outside this period</button>` : ""}</div>
+    <div class="txlist">${L.length ? txList(L.slice(0, S.show)) + (L.length > S.show ? `<button class="pill-btn more" data-more="1">Show more (${L.length - S.show})</button>` : "") : `<div class="empty">${ILL_SEARCH}<p>Nothing matches${q ? ` "${esc(S.q)}"` : ""} ${qAll ? "in your whole history" : "in this period"}.</p>${outN ? `<button class="pill-btn" data-act="q-all">See ${outN} from other periods</button>` : ""}${q ? `<button class="pill-btn" data-act="clear-q">Clear search</button>` : anyF ? `<button class="pill-btn" data-act="clear-f">Clear filters</button>` : ""}</div>`}</div>
+    ${S.sel ? `<div class="selbar" role="toolbar" aria-label="Selection actions"><span>${selN} selected</span><button data-act="sel-all">All (${L.length})</button><button data-act="sel-cat" ${selN ? "" : "disabled"}>Category</button><button data-act="sel-x" ${selN ? "" : "disabled"}>Extra</button><button data-act="sel-del" ${selN ? "" : "disabled"}>Delete</button><button data-act="sel-end" aria-label="End selection">✕</button></div>` : ""}
   </section>`;
 }
 
@@ -2120,6 +2143,7 @@ function openSheet(html, onMount) {
 function closeSheet() {
   const sc = $("#sheetRoot").querySelector(".scrim:not(.closing)"); if (!sc) return;
   if (sc.contains(document.activeElement)) document.activeElement.blur();
+  const shc = sc.querySelector(".sheet"); if (shc && shc._onClose) { shc._onClose(); shc._onClose = null; }
   sc.classList.add("closing"); sc.removeAttribute("id");
   setTimeout(() => sc.remove(), matchMedia("(prefers-reduced-motion: reduce)").matches ? 130 : 230);
 }
@@ -2130,24 +2154,30 @@ const parseAmt = v => { const s = String(v).replace(/\s/g, ""), i = Math.max(s.l
   if (i < 0) return parseFloat(s);
   const head = s.slice(0, i).replace(/[.,]/g, ""), tail = s.slice(i + 1);
   return parseFloat(tail.length === 3 && !/\D/.test(tail) ? head + tail : head + "." + tail); };
+// a new transaction closed without saving (tap outside, drag down, Cancel) is kept for 30 min and offered back next time
+let draft = null;
 function txSheet(id, kindDefault, pre) {
-  const t = id ? S.txs.find(x => x.id === id) : null, P = t || pre || null;
-  let kind = t ? t.k : (kindDefault || "e"), cat = P ? P.c : null, auto = false;
+  const t = id ? S.txs.find(x => x.id === id) : null, dr = !t && !pre && draft && Date.now() - draft.at < 18e5 ? draft : null, P = t || pre || dr || null;
+  if (!t && !pre) draft = null;
+  let kind = t ? t.k : dr ? dr.k : (kindDefault || "e"), cat = P ? P.c : null, auto = false;
   const now = new Date();
-  const d0 = t ? t.d.slice(0, 10) : ymd(now);
+  const d0 = t ? t.d.slice(0, 10) : dr ? dr.d : ymd(now);
   openSheet(`<div class="sh-bar"><button type="button" class="navbtn" data-sh-close>Cancel</button><h2>${t ? "Edit transaction" : "New transaction"}</h2><button type="button" class="navbtn b" data-sh-save>Save</button></div>
     <div class="seg full" role="group" aria-label="Type"><button type="button" data-k="e">Expense</button><button type="button" data-k="i">Income</button></div>
-    <div class="field"><label for="f-amt" class="sr">Amount</label><div class="amount-box"><input class="amount-in num" id="f-amt" inputmode="decimal" enterkeyhint="done" autocomplete="off" placeholder="0.00" value="${P ? String(P.a) : ""}"><span>€</span></div></div>
+    ${dr ? `<p class="drafted" id="f-dr">Restored what you were typing <button type="button" class="link" id="f-drx">Start over</button></p>` : ""}<div class="field"><label for="f-amt" class="sr">Amount</label><div class="amount-box"><input class="amount-in num" id="f-amt" inputmode="decimal" enterkeyhint="done" autocomplete="off" placeholder="0.00" value="${P ? String(P.a) : ""}"><span>€</span></div></div>
     <div class="field"><label for="f-note">Note</label><input class="input" id="f-note" maxlength="140" enterkeyhint="done" placeholder="e.g. Dinner with friends" value="${esc(P ? P.n || "" : "")}"><div class="sugg" id="f-sugg" hidden></div><div class="xhint" id="f-xh" hidden></div></div>
     <div class="field"><span class="lbl">Category</span><div class="ctiles" id="f-cats"></div></div>
     <div class="field"><label for="f-date">Date</label><div class="datepick"><button type="button" class="chip" data-dq="0">Today</button><button type="button" class="chip" data-dq="1">Yesterday</button><input class="input" type="date" id="f-date" value="${d0}" aria-label="Another date"></div></div>
     <details class="opts"${t && (t.l || t.x) ? " open" : ""}><summary>More options</summary><div>
-      <div class="field"><label for="f-lab">Labels (comma-separated)</label><input class="input" id="f-lab" maxlength="80" placeholder="e.g. Japan trip, birthday" value="${esc(t ? t.l || "" : "")}"></div>
+      <div class="field"><label for="f-lab">Labels (comma-separated)</label><input class="input" id="f-lab" maxlength="80" placeholder="e.g. Japan trip, birthday" value="${esc(t ? t.l || "" : dr ? dr.l || "" : "")}"></div>
       <label class="switch" id="f-xrow"><input type="checkbox" id="f-x" ${t && t.x ? "checked" : ""}><span><b>Extraordinary expense</b><small>Left out of averages and projections</small></span></label>
       ${t ? "" : `<div class="field" id="f-sprow"><label for="f-split">Split over several days (e.g. a trip)</label><div class="split-in"><input class="input num" id="f-split" inputmode="numeric" maxlength="2" placeholder="1"><span>days, one per day from the date</span></div></div>`}
     </div></details>
     <div class="actions"><p class="err" id="f-err" role="alert" hidden></p><button class="btn primary" id="f-save">Save</button>${t ? '<button class="btn ghost" id="f-dup">Repeat today</button><button class="btn danger" id="f-del">Delete</button>' : '<button class="btn ghost" id="f-cancel" hidden>Cancel</button>'}</div>`, sh => {
     const amt = $("#f-amt", sh);
+    let done = false;
+    if (!t) sh._onClose = () => { const a = amt.value.trim(), n = $("#f-note", sh).value.trim(); if (!done && (a || n)) draft = { at: Date.now(), k: kind, a: a ? parseAmt(a) || "" : "", n, c: cat, d: $("#f-date", sh).value, l: $("#f-lab", sh).value }; };
+    if (dr) $("#f-drx", sh).onclick = () => { amt.value = ""; $("#f-note", sh).value = ""; $("#f-lab", sh).value = ""; cat = null; $("#f-date", sh).value = ymd(new Date()); $("#f-dr", sh).remove(); paint(); paintDate(); suggest(); amt.focus(); };
     // the amount is centred and as wide as its text (field-sizing where supported, a width in ch elsewhere)
     if (!(window.CSS && CSS.supports && CSS.supports("field-sizing", "content"))) { const fit = () => { amt.style.width = Math.max(2, (amt.value || amt.placeholder).length + .4) + "ch"; }; fit(); amt.addEventListener("input", fit); }
     let lastField = t ? null : amt;
@@ -2165,7 +2195,7 @@ function txSheet(id, kindDefault, pre) {
       else g.querySelectorAll(".ctile[data-c]").forEach(b => b.setAttribute("aria-pressed", b.dataset.c === cat));
     };
     // validation: the field at fault shakes once; fixing it clears the message
-    let errOf = null;
+    let errOf = null, guardOf = null;
     const shake = el => { el.classList.remove("shake"); void el.offsetWidth; el.classList.add("shake"); };
     const clearErr = k => { if (errOf !== k) return; errOf = null; $("#f-err", sh).classList.add("gone"); $(".amount-box", sh).classList.remove("bad"); $("#f-cats", sh).classList.remove("bad"); };
     // up to 3 suggested categories as chips; the first is picked for you only when it clearly stands out
@@ -2211,6 +2241,9 @@ function txSheet(id, kindDefault, pre) {
       if (!(a > 0)) { err.textContent = "Enter an amount greater than zero."; err.hidden = false; err.classList.remove("gone"); errOf = "amt"; const bx = $(".amount-box", sh); bx.classList.add("bad"); shake(bx); amt.focus(); return; }
       $(".amount-box", sh).classList.remove("bad");
       if (!cat) { err.textContent = "Choose a category."; err.hidden = false; err.classList.remove("gone"); errOf = "cat"; const g = $("#f-cats", sh); g.classList.add("bad"); shake(g); g.scrollIntoView({ block: "center", behavior: RM.matches ? "auto" : "smooth" }); setTimeout(() => g.classList.remove("bad"), 1600); return; }
+      // typo guard: far above anything you've ever entered (e.g. "4550" for "45.50") asks for a second tap
+      const top = Math.max(0, ...S.txs.filter(x => x.k === kind && x.id !== (t && t.id)).map(x => x.a));
+      if (a > Math.max(3000, top * 3) && a !== (t && t.a) && guardOf !== a) { guardOf = a; err.textContent = `${eur(a)}? That is far more than your ${kind === "e" ? "largest expense" : "largest income"} (${eur0(top)}). If it is right, tap Save again.`; err.hidden = false; err.classList.remove("gone"); errOf = "amt"; const bx = $(".amount-box", sh); bx.classList.add("bad"); shake(bx); return; }
       const date = $("#f-date", sh).value; if (!date) { err.textContent = "Choose a date."; err.hidden = false; err.classList.remove("gone"); errOf = "date"; return; }
       const nt = { id: t ? t.id : uid(), d: t && t.d.slice(0, 10) === date ? t.d : date + "T12:00", k: kind, c: cat, a: Math.round(a * 100) / 100, n: $("#f-note", sh).value.trim() };
       const labs = $("#f-lab", sh).value.split(",").map(s => s.trim()).filter(Boolean); if (labs.length) nt.l = labs.join(", ");
@@ -2220,21 +2253,21 @@ function txSheet(id, kindDefault, pre) {
       if (nd > 1) {
         const each = Math.floor(nt.a / nd * 100) / 100, lab = nt.n || catById(cat)?.name || "trip", list = [];
         for (let i = 0; i < nd; i++) { const d = dAt(date); d.setDate(d.getDate() + i); list.push({ ...nt, id: uid() + i, d: ymd(d) + "T12:00", a: i === nd - 1 ? Math.round((nt.a - each * (nd - 1)) * 100) / 100 : each, l: [...new Set([...labs, lab])].join(", ") }); }
-        replaceTxs(list); closeSheet(); markJust(list.map(x => x.id)); render(); revealJust();
-        try { await commit(list); toast(`Split over ${nd} days`, async () => { const ids = new Set(list.map(x => x.id)); S.txs = S.txs.filter(x => !ids.has(x.id)); render(); try { await commit([], list); } catch (e) { failed(e); } }); } catch (e) { failed(e); }
+        done = true; replaceTxs(list); closeSheet(); markJust(list.map(x => x.id)); const sfx = showSaved(list);
+        try { await commit(list); toast(`Split over ${nd} days${sfx}`, async () => { const ids = new Set(list.map(x => x.id)); S.txs = S.txs.filter(x => !ids.has(x.id)); render(); try { await commit([], list); } catch (e) { failed(e); } }); } catch (e) { failed(e); }
         return;
       }
-      replaceTxs([nt]); closeSheet(); markJust([nt.id]); render(); revealJust();
+      done = true; replaceTxs([nt]); closeSheet(); markJust([nt.id]); const sfx = showSaved([nt]);
       try {
         await commit([nt], t ? [t] : []);
-        if (t) toast("Changes saved");
-        else toast(kind === "e" ? "Expense added" : "Income added", async () => { S.txs = S.txs.filter(x => x.id !== nt.id); render(); try { await commit([], [nt]); } catch (e) { failed(e); } });
+        if (t) toast("Changes saved" + sfx);
+        else toast((kind === "e" ? "Expense added" : "Income added") + sfx, async () => { S.txs = S.txs.filter(x => x.id !== nt.id); render(); try { await commit([], [nt]); } catch (e) { failed(e); } });
       } catch (e) { failed(e); }
     };
     if (t) $("#f-dup", sh).onclick = async () => {
       const n = new Date(), nt = { ...t, id: uid(), d: `${ymd(n)}T12:00` };
-      replaceTxs([nt]); closeSheet(); markJust([nt.id]); render(); revealJust();
-      try { await commit([nt]); toast("Repeated with today's date", async () => { S.txs = S.txs.filter(x => x.id !== nt.id); render(); try { await commit([], [nt]); } catch (e) { failed(e); } }); } catch (e) { failed(e); }
+      replaceTxs([nt]); closeSheet(); markJust([nt.id]); const sfx = showSaved([nt]);
+      try { await commit([nt]); toast("Repeated with today's date" + sfx, async () => { S.txs = S.txs.filter(x => x.id !== nt.id); render(); try { await commit([], [nt]); } catch (e) { failed(e); } }); } catch (e) { failed(e); }
     };
     if (t) {
       let armed = false, at;
@@ -2362,7 +2395,14 @@ async function bulkExtra() {
   const picked = S.txs.filter(t => S.sel.has(t.id) && t.k === "e"); if (!picked.length) { toast("Only expenses can be extraordinary."); return; }
   const on = !picked.every(t => t.x), news = picked.map(t => { const n = { ...t }; if (on) n.x = true; else delete n.x; return n; });
   replaceTxs(news); S.sel = null; render();
-  try { await commit(news); toast(`${news.length} expenses ${on ? "marked as extraordinary" : "back to normal"}`); } catch (e) { failed(e); }
+  try { await commit(news); toast(`${news.length} expenses ${on ? "marked as extraordinary" : "back to normal"}`, async () => { replaceTxs(picked); render(); try { await commit(picked); } catch (e) { failed(e); } }); } catch (e) { failed(e); }
+}
+// first tap arms the button (3 s), second deletes; one "Undo" brings them all back
+async function bulkDelete(btn) {
+  const picked = S.txs.filter(t => S.sel && S.sel.has(t.id)); if (!picked.length) return;
+  if (!btn.classList.contains("armed")) { btn.classList.add("armed"); btn.textContent = `Delete ${picked.length}?`; setTimeout(() => { if (btn.isConnected) { btn.classList.remove("armed"); btn.textContent = "Delete"; } }, 3000); return; }
+  const ids = new Set(picked.map(t => t.id)); S.txs = S.txs.filter(t => !ids.has(t.id)); selOut(); S.sel = null; render();
+  try { await commit([], picked); toast(`${picked.length} ${picked.length === 1 ? "transaction deleted" : "transactions deleted"}`, async () => { replaceTxs(picked); markJust([...ids]); render(); try { await commit(picked); } catch (e) { failed(e); } }); } catch (e) { failed(e); }
 }
 function periodSheet() {
   const today = ymd(new Date()), yy = today.slice(0, 4);
@@ -2577,13 +2617,13 @@ document.addEventListener("click", e => {
   const mk = e.target.closest("[data-mk]"); if (mk) { S.movKind = mk.dataset.mk; S.catF = null; S.show = 60; render(); return; }
   const mo = e.target.closest("[data-more]"); if (mo) { S.show += 100; render(); return; }
   const cm = e.target.closest("[data-cmp]"); if (cm) { const r = range(), k = cm.dataset.cmp; if (k === "reset") S.cmp = null; else if (k === "prev") S.cmp.b = shiftBack(S.cmp.a.s, S.cmp.a.e); else S.cmp.b = { s: yearBack(S.cmp.a.s), e: yearBack(S.cmp.a.e) }; render(); return; }
-  const bt = e.target.closest("[data-bt]"); if (bt) { const k = bt.dataset.bt; if (k === "add") txSheet(null, S.movKind === "i" ? "i" : "e"); else if (k === "more") moreSheet(); else { if (k === "movimientos" && S.tab !== "movimientos") Object.assign(S, { catF: null, movKind: "all", lab: null, q: "", show: 60 }); go(k); } return; }
+  const bt = e.target.closest("[data-bt]"); if (bt) { const k = bt.dataset.bt; if (k === "add") txSheet(null, S.movKind === "i" ? "i" : "e"); else if (k === "more") moreSheet(); else { if (k === "movimientos" && S.tab !== "movimientos") Object.assign(S, { catF: null, movKind: "all", lab: null, q: "", qAll: false, show: 60 }); go(k); } return; }
   const ck = e.target.closest("[data-ck]"); if (ck) { S.catKind = ck.dataset.ck; render(); return; }
   const cr = e.target.closest("[data-cat]"); if (cr) { catSheet(cr.dataset.cat); return; }
   const act = e.target.closest("[data-act]"); if (!act) return;
   const a = act.dataset.act;
   if (a === "add") txSheet(null, "e");
-  else if (a === "search") { Object.assign(S, { catF: null, movKind: "all", lab: null, q: "", show: 60 }); go("movimientos"); const si = $("#search-movs"); if (si) si.focus(); }
+  else if (a === "search") { Object.assign(S, { catF: null, movKind: "all", lab: null, q: "", qAll: false, show: 60 }); go("movimientos"); const si = $("#search-movs"); if (si) si.focus(); }
   else if (a === "ov-all") { Object.assign(S, { movKind: "all", catF: null, q: "", lab: null, show: 60, movM: act.dataset.m }); go("movimientos", true); }
   else if (a === "import") $("#fileIn").click();
   else if (a === "newcat") catSheet(null);
@@ -2593,13 +2633,15 @@ document.addEventListener("click", e => {
   else if (a === "stale-hide") { lsSet("gastos.staleHide", String(Date.now())); render(); }
   else if (a === "bk-hide") { lsSet("gastos.bkHide", String(Date.now())); render(); }
   else if (a === "clear-movm") { S.movM = null; S.show = 60; render(); }
-  else if (a === "clear-f") { Object.assign(S, { q: "", catF: null, movM: null, lab: null, fmin: "", fmax: "", noNote: false, onlyX: false, show: 60 }); render(); }
+  else if (a === "q-all" || a === "q-all-off") { S.qAll = a === "q-all"; S.show = 60; render(); }
+  else if (a === "clear-f") { Object.assign(S, { q: "", qAll: false, catF: null, movM: null, lab: null, fmin: "", fmax: "", noNote: false, onlyX: false, show: 60 }); render(); }
   else if (a === "sel-start") { const on = !S.sel; if (!on) selOut(); S.sel = on ? new Set() : null; render(); if (on) selIn(); }
   else if (a === "sel-end") { selOut(); S.sel = null; render(); }
   else if (a === "sel-all") { S._ids.forEach(id => S.sel.add(id)); render(); selTick(); }
-  else if (a === "clear-q") { S.q = ""; S.show = 60; render(); const si = $("#search-movs"); if (si) si.focus({ preventScroll: true }); }
+  else if (a === "clear-q") { S.q = ""; S.qAll = false; S.show = 60; render(); const si = $("#search-movs"); if (si) si.focus({ preventScroll: true }); }
   else if (a === "sel-cat") bulkCatSheet();
   else if (a === "sel-x") bulkExtra();
+  else if (a === "sel-del") bulkDelete(act);
   else if (a === "pot") potSheet();
   else if (a === "review-budgets") reviewBudgetsSheet();
   else if (a === "newgoal") goalSheet(null);
@@ -2608,7 +2650,7 @@ document.addEventListener("click", e => {
 let qT;
 document.addEventListener("input", e => {
   const id = e.target.id;
-  if (id === "search-movs") { S.q = e.target.value; S.show = 60; clearTimeout(qT); qT = setTimeout(render, 160); }
+  if (id === "search-movs") { S.q = e.target.value; if (!S.q.trim()) S.qAll = false; S.show = 60; clearTimeout(qT); qT = setTimeout(render, 160); }
   else if (id === "f-min" || id === "f-max") { S[id === "f-min" ? "fmin" : "fmax"] = e.target.value; S.show = 60; render(); }
 });
 document.addEventListener("change", e => {
