@@ -1,0 +1,134 @@
+{
+ "cats": [
+  {
+   "id": "e-groceries",
+   "name": "Groceries",
+   "kind": "e",
+   "icon": "🛒",
+   "color": "#F2A541",
+   "budget": 260
+  },
+  {
+   "id": "e-eating-out",
+   "name": "Eating out",
+   "kind": "e",
+   "icon": "🍽️",
+   "color": "#E4572E",
+   "budget": 150
+  },
+  {
+   "id": "e-home",
+   "name": "Home",
+   "kind": "e",
+   "icon": "🏠",
+   "color": "#5C80BC",
+   "budget": null
+  },
+  {
+   "id": "e-bills",
+   "name": "Bills",
+   "kind": "e",
+   "icon": "🧾",
+   "color": "#7B6CD9",
+   "budget": null
+  },
+  {
+   "id": "e-transport",
+   "name": "Transport",
+   "kind": "e",
+   "icon": "🚇",
+   "color": "#3BB273",
+   "budget": 60
+  },
+  {
+   "id": "e-sport",
+   "name": "Sport and hobbies",
+   "kind": "e",
+   "icon": "🎾",
+   "color": "#2E86AB",
+   "budget": null
+  },
+  {
+   "id": "e-leisure",
+   "name": "Leisure",
+   "kind": "e",
+   "icon": "🎬",
+   "color": "#D7263D",
+   "budget": 80
+  },
+  {
+   "id": "e-shopping",
+   "name": "Shopping",
+   "kind": "e",
+   "icon": "🛍️",
+   "color": "#C17C74",
+   "budget": null
+  },
+  {
+   "id": "e-clothes",
+   "name": "Clothes",
+   "kind": "e",
+   "icon": "👕",
+   "color": "#B5838D",
+   "budget": null
+  },
+  {
+   "id": "e-health",
+   "name": "Health",
+   "kind": "e",
+   "icon": "💊",
+   "color": "#1B998B",
+   "budget": null
+  },
+  {
+   "id": "e-travel",
+   "name": "Travel",
+   "kind": "e",
+   "icon": "✈️",
+   "color": "#4D9DE0",
+   "budget": null
+  },
+  {
+   "id": "e-gifts",
+   "name": "Gifts",
+   "kind": "e",
+   "icon": "🎁",
+   "color": "#E07BE0",
+   "budget": null
+  },
+  {
+   "id": "e-other",
+   "name": "Other",
+   "kind": "e",
+   "icon": "🏷️",
+   "color": "#8C9A2B",
+   "budget": null
+  },
+  {
+   "id": "i-salary",
+   "name": "Salary",
+   "kind": "i",
+   "icon": "💼",
+   "color": "#2A9D8F",
+   "budget": null
+  },
+  {
+   "id": "i-gifts",
+   "name": "Gifts",
+   "kind": "i",
+   "icon": "🎁",
+   "color": "#E1BC29",
+   "budget": null
+  },
+  {
+   "id": "i-other",
+   "name": "Other",
+   "kind": "i",
+   "icon": "🏷️",
+   "color": "#6D597A",
+   "budget": null
+  }
+ ],
+ "currency": "EUR",
+ "v": 1
+}

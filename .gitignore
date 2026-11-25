@@ -1,11 +1,12 @@
-# Datos reales: nunca al repositorio
+# Real data: never in the repository
 *.csv
+my-data/
 mis-datos/
 db/
-salida/
+out/
 # Python / Node
 __pycache__/
 *.pyc
 node_modules/
-# Sistema
+# System
 .DS_Store

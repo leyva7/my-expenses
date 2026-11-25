@@ -1,5 +1,5 @@
 // Style snapshot of every screen: node tests/snap.js <app.html> <out-dir>
-// Loads the app in local mode with the seed data, a fixed date (30 oct 2026) and each tab / sub-view / theme / width,
+// Loads the app in local mode with the sample data, a fixed date (30 oct 2026) and each tab / sub-view / theme / width,
 // then records the computed style of every element (after finishing animations) and a screenshot.
 // Compare two runs with: node tests/snapdiff.js <dirA> <dirB>
 const { chromium, devices } = require('playwright');
@@ -9,8 +9,8 @@ const ROOT = path.join(__dirname, '..');
 fs.mkdirSync(outDir, { recursive: true });
 
 function seed() {
-  const cfg = JSON.parse(fs.readFileSync(path.join(ROOT, 'datos-ejemplo/meta/config.json')));
-  const dir = path.join(ROOT, 'datos-ejemplo/months');
+  const cfg = JSON.parse(fs.readFileSync(path.join(ROOT, 'sample-data/meta/config.json')));
+  const dir = path.join(ROOT, 'sample-data/months');
   const txs = fs.readdirSync(dir).flatMap(f => JSON.parse(fs.readFileSync(path.join(dir, f))).txs || []);
   return { txs, cats: cfg.cats, lastBackup: '2026-10-20T10:00:00.000Z', fixOff: [], pot: null, goals: [] };
 }
@@ -44,7 +44,7 @@ async function snapshot(page) {
   const errors = [];
   for (const [fk, dev] of forms) for (const theme of ['light', 'dark']) for (const [tab, sub, act] of states) {
     if (fk === 'l' && (theme === 'dark' || sub && sub !== 'general')) continue;
-    const ctx = await b.newContext({ ...dev, locale: 'es-ES', timezoneId: 'Europe/Madrid' });
+    const ctx = await b.newContext({ ...dev, locale: 'en-GB', timezoneId: 'Europe/Madrid' });
     const page = await ctx.newPage();
     page.on('pageerror', e => errors.push(`${fk}/${theme}/${tab}/${sub}: ${e.message}`));
     await page.clock.setFixedTime(new Date('2026-10-30T12:00:00+01:00'));
