@@ -1,6 +1,6 @@
 # My Expenses
 
-A personal expense and income tracker in **a single HTML file**: no server, no dependencies, no account. It runs in the browser on mobile and desktop, has light and dark themes, and besides recording transactions it tells you how you are doing: end-of-month forecast, fixed payments, habit changes, trips and alerts.
+A personal expense and income tracker in **a single HTML file**: no server, no dependencies, no account. It runs in the browser on mobile and desktop, has light and dark themes, and besides recording transactions it tells you how you are doing: end-of-month forecast ("You have €X left for day-to-day"), fixed payments, habit changes, trips and alerts.
 
 It also includes a **weekly email summary** (headline, a few sentences and one chart) generated with Python from the same data.
 
@@ -19,9 +19,10 @@ It also includes a **weekly email summary** (headline, a few sentences and one c
 
 ## Features
 
-- **Summary:** month net, income and expenses, last 6 months, forecast of how the month will end (with a range and how much you will save) and alerts.
+- **Summary:** month net, income and expenses, last 6 months, alerts and a **forecast card**: how the month will end (the real total, one-offs included), a "▲/▼ X% day-to-day" pill against your normal day-to-day spending, and **"You have €X left for day-to-day (€Y/day)"** (or "You are €X over"). When the pill is red it adds "You will end ≈ €X above normal", and when the month has one-offs, "Includes €X of one-offs, on top of day-to-day". On mobile the card is short; "Details" opens the range, a two-bar chart (day-to-day with the "normal" mark, one-offs apart) and what each figure means.
+- **Safe to use offline or on a flaky connection** (when published as a claude.ai artifact): every change goes to an outbox in the browser before it is sent and stays there until the cloud confirms it, so nothing is lost on a reload; a write that hangs counts as offline after 8 s; settings are synced field by field so two devices do not overwrite each other; a line says "N pending changes" or "Offline · Retry", and if the cloud does not answer in 15 s you get an error screen with Retry instead of an endless skeleton.
 - **Transactions:** list by day with search (accent-insensitive, every word must match, and it offers matches outside the current period), filters, editing, multi-select (change category, mark extraordinary, delete, all undoable) and labels. It suggests a category as you type the note, keeps an unsaved entry as a draft for 30 minutes, and asks twice before saving an amount far above anything you have entered.
-- **Analysis:** overview, habits (pace by category and habit changes), compare periods, **fixed payments** (detects subscriptions and bills, and warns when one goes up, goes down, is missing or a new one appears) and **trips**.
+- **Analysis:** overview, habits (the month's pace against normal day-to-day, with the same pill as Summary, pace by category and habit changes), compare periods, **fixed payments** (detects subscriptions and bills, and warns when one goes up, goes down, is missing or a new one appears) and **trips**.
 - **Trends** (month by month) and **Categories and budgets**, with colours, icons and a monthly budget.
 - **Extraordinary** expenses (a one-off big purchase) that do not distort the "normal month".
 
@@ -43,7 +44,11 @@ docs/
 tools/
   build_demo.py        Rebuilds docs/index.html from app/my-expenses.html and sample-data/.
 tests/
-  calc.test.js         14 checks of the calculations (forecast, savings, fixed payments, alerts...).
+  calc.test.js         33 checks of the calculations (forecast card, savings, fixed payments, alerts...).
+  flows.test.js        17 user flows against a fake cloud (add, move, delete + undo, offline, drafts, guards).
+  sync.test.js         36 checks with several devices sharing one fake cloud (offline, hung network, config).
+  sync2.test.js        48 fine-grained robustness checks (late writes, duplicates, damaged data, old versions).
+  design.test.js       883 layout checks at 320/375/393 px and 150/200 % zoom, light and dark.
   snap.js, snapdiff.js Visual regression: computed style of every screen and a diff between versions.
   tools/cssmerge.py    Safely merges repeated CSS rules.
 ```
@@ -82,7 +87,10 @@ In local mode everything lives in a single `localStorage` key, `gastos.local.v1`
 
 - **Normal month:** average of the last 6 complete months, excluding extraordinary items.
 - **End-of-month forecast:** spent so far + pending fixed payments + expected day-to-day spending + unexpected items. On the sample data, the mean error in the historical back-test (cut-offs on days 5, 10, 15, 20 and 25 of each month) is 16%.
-- **One-off expense:** extraordinary, €150 or more, or a trip. Kept out of the daily pace.
+- **One-off expense:** extraordinary, €150 or more, or a trip. Counted in the big figure, kept out of day-to-day.
+- **Normal day-to-day:** the normal month without one-offs. It is the single yardstick of the forecast card and of the pace in Habits.
+- **"You have €X left for day-to-day":** normal day-to-day − what you have spent without one-offs − fixed payments still due (not one-offs). It is a margin, not a forecast.
+- **Pill:** day-to-day forecast vs normal day-to-day. Red when up, green when down, grey within ±5%; not shown before day 5.
 - **Fixed payments:** same note or amount in at least 3 months, roughly once a month, with amounts within ±35%.
 - **Habit change:** a category or a word in the notes whose median over the last 3 months is at least twice the average of the previous 6 (and at least €25/month more).
 
@@ -123,7 +131,10 @@ If the week has no transactions, no image is generated and the email is a single
 Requirements: Node.js with Playwright (`npm install playwright && npx playwright install chromium`) and Python 3.
 
 ```bash
-node tests/calc.test.js                                # calculations: all 14 checks must pass
+node tests/calc.test.js                                # calculations: all 33 checks must pass
+node tests/flows.test.js                               # user flows (17)
+node tests/sync.test.js && node tests/sync2.test.js    # sync (36 + 48, about 6 minutes)
+node tests/design.test.js                              # layout, contrast, tap size and zoom (883)
 node tests/snap.js app/my-expenses.html /tmp/before    # style of every screen (before the change)
 # ... make the change ...
 node tests/snap.js app/my-expenses.html /tmp/after
@@ -131,11 +142,11 @@ node tests/snapdiff.js /tmp/before /tmp/after          # which elements change a
 python3 tools/build_demo.py                            # update the demo
 ```
 
-The tests use `sample-data/` and a fixed date (30 October 2026), so their figures do not depend on the day you run them. If you regenerate the sample data with different rules, the figures change and must be pinned again.
+The tests use `sample-data/` and a fixed date (30 October 2026 for the calculations, 25 November 2026 for the browser tests), so their figures do not depend on the day you run them. If you regenerate the sample data with different rules, the figures change and must be pinned again.
 
 ## How it was made
 
-The app was built iteratively with Claude (Anthropic), from v1 to the current v20, with technical review rounds, a round of intensive use as a real user (v20), accuracy back-tests of the forecast on historical data, and a redesign that looks like a native iPhone app.
+The app was built iteratively with Claude (Anthropic), from v1 to the current v30, with technical review rounds, a round of intensive use as a real user (v20), accuracy back-tests of the forecast on historical data, a redesign that looks like a native iPhone app, and three evaluation rounds (v21–v30) on offline-safe sync, accessibility and a clearer forecast card.
 
 ## License
 
