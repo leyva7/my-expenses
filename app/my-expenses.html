@@ -1609,7 +1609,7 @@ function monthly(kind, ordinaryOnly) {
   for (const t of S.txs) { if (kind && t.k !== kind) continue; if (ordinaryOnly && t.x) continue; const k = t.d.slice(0, 7); (m[k] ||= { i: 0, e: 0 })[t.k] += t.a; }
   return m;
 }
-// savings rate, or null («—») when the income is under 20 % of your usual income for that span (e.g. 15 € of interest
+// savings rate, or null ("—") when the income is under 20 % of your usual income for that span (e.g. 15 € of interest
 // before the salary arrives would read −4733 %)
 function savingsRate(I, E, months) { const ai = avgMonthly(6).i; return I > 0 && I >= .2 * ai * months ? (I - E) / I : null; }
 function byCat(list) { const m = {}; for (const t of list) m[t.c] = (m[t.c] || 0) + t.a; return m; }
