@@ -378,6 +378,7 @@ input::-webkit-date-and-time-value{text-align:left}
 .sugg[hidden]{display:none}
 .sugg .chip{min-height:36px;padding:4px 10px;font-size:13px}
 .tx.fx .t1{display:block;text-align:left;white-space:normal}
+.tx.fx .t2{display:block;text-align:left;white-space:normal}
 .drafted{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:4px 10px;margin:0 0 4px;font-size:13px;font-weight:600;color:var(--muted)}
 .xhint{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;margin-top:8px;padding:8px 10px;border-radius:12px;background:var(--warn-soft);color:var(--warn);font-size:13px;font-weight:600}
 .xhint[hidden]{display:none}
@@ -661,7 +662,7 @@ section.view>*{min-width:0}
 .sheet h2{line-height:1.2}
 .sh-bar{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:6px;margin:0 -8px;min-height:44px}
 .sh-bar h2{text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.navbtn{border:0;background:none;color:var(--accent);font-size:17px;letter-spacing:-.01em;padding:0 8px;min-height:44px;justify-self:start;white-space:nowrap}
+.navbtn{border:0;background:none;color:var(--accent);font-size:17px;letter-spacing:-.01em;padding:0 8px;min-height:44px;min-width:44px;justify-self:start;white-space:nowrap}
 .navbtn.b{font-weight:600;justify-self:end}
 .sheet .seg.full{margin-inline:24px}
 @media (max-width:360px){
@@ -988,6 +989,7 @@ header.top.scrolled{border-bottom-color:var(--line);box-shadow:0 1px 8px rgb(0 0
   .tx .t1.hx{flex-wrap:wrap}
   .tx .t1.hx .badge{margin-left:0;padding-inline:5px}
   .kpis{grid-template-columns:minmax(0,1fr)}
+  .card-head{flex-wrap:wrap}
 }
 @media (max-width:240px){
   #dataBtn{display:none}
@@ -1011,6 +1013,12 @@ header.top.scrolled{border-bottom-color:var(--line);box-shadow:0 1px 8px rgb(0 0
   .sheet,.rows,.mix{grid-template-columns:minmax(0,1fr)}
   .mix-chips .chip{max-width:100%}
   .mix-chips .chip .cn{min-width:0;overflow:hidden;text-overflow:ellipsis}
+  .tx .mid{grid-template-columns:minmax(0,1fr)}
+  .fx-b .chip{white-space:normal;text-align:left;flex:0 1 auto;min-width:0}
+  .txlist{grid-template-columns:minmax(0,1fr)}
+  .sheet .seg.full{margin-inline:0}
+  .datepick{grid-template-columns:auto auto}
+  .datepick .input{grid-column:1/-1}
 }
 </style>
 
@@ -2088,7 +2096,7 @@ function heat(el, spec) {
   });
   ["M", "", "W", "", "F", "", "S"].forEach((l, r) => { if (l) m += `<text x="0" y="${top + r * (cell + gap) + cell - 1}">${l}</text>`; });
   const H = top + 7 * (cell + gap) + 22;
-  const lx = left; let lg = `<text x="${lx}" y="${H - 6}">Less</text>`;
+  const lx = Math.max(0, Math.min(left, W - 150)); let lg = `<text x="${lx}" y="${H - 6}">Less</text>`;
   fills.forEach((f, i) => lg += `<rect x="${lx + 40 + i * (12 + 3)}" y="${H - 16}" width="12" height="12" rx="3" style="fill:${f}"/>`);
   lg += `<text x="${lx + 40 + 5 * 15 + 4}" y="${H - 6}">More</text>`;
   el.style.height = H + "px";
